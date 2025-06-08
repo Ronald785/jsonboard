@@ -21,7 +21,7 @@ interface AppState {
     setCurrentFolderId: (id: string) => void;
     loadFolderContents: (folderId: string) => Promise<void>;
     addFile: (name: string, content: string) => Promise<void>;
-    addFolder: (name: string) => Promise<void>;
+    addFolder: (name: string) => Promise<string>;
     moveItems: (itemIds: string[], targetFolderId: string) => Promise<void>;
     deleteFileById: (fileId: string) => Promise<void>;
     deleteFolderById: (folderId: string) => Promise<void>;
@@ -59,8 +59,9 @@ export const useAppStore = create<AppState>()(
 
             addFolder: async (name) => {
                 const folderId = get().currentFolderId;
-                await createFolder(name, folderId);
+                const newFolderId = await createFolder(name, folderId);
                 await get().loadFolderContents(folderId);
+                return newFolderId;
             },
 
             moveItems: async (itemIds, targetFolderId) => {

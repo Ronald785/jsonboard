@@ -1,22 +1,30 @@
 interface WorkerSuccessResponse {
     status: "success";
-    parsedJson: unknown;
+    payload: unknown;
+    uploadId: string;
 }
 
 interface WorkerErrorResponse {
     status: "error";
     message: string;
+    uploadId: string;
 }
 
-self.onmessage = (e: MessageEvent<string>) => {
-    const content = e.data;
+interface WorkerRequest {
+    content: string;
+    uploadId: string;
+}
+
+self.onmessage = (e: MessageEvent<WorkerRequest>) => {
+    const { content, uploadId } = e.data;
 
     try {
         const parsed: unknown = JSON.parse(content);
 
         const response: WorkerSuccessResponse = {
             status: "success",
-            parsedJson: parsed
+            payload: parsed,
+            uploadId
         };
 
         self.postMessage(response);
@@ -25,7 +33,8 @@ self.onmessage = (e: MessageEvent<string>) => {
 
         const response: WorkerErrorResponse = {
             status: "error",
-            message: errorMessage
+            message: errorMessage,
+            uploadId
         };
 
         self.postMessage(response);

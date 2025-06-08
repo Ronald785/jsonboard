@@ -1,5 +1,4 @@
 import type { FileContent, FileEntry, Folder } from "@/types";
-import { Blob } from "buffer";
 import { v4 as uuidv4 } from "uuid";
 import { db } from "./db";
 
@@ -201,4 +200,18 @@ export async function getAllFilesInFolder(
         .anyOf(allFolderIds)
         .toArray();
     return files;
+}
+
+export async function getFolderPath(folderId: string): Promise<Folder[]> {
+    const path: Folder[] = [];
+    let currentId = folderId;
+
+    while (currentId !== "") {
+        const folder = await db.folders.get(currentId);
+        if (!folder) break;
+        path.unshift(folder);
+        currentId = folder.folderId ?? "";
+    }
+
+    return path;
 }

@@ -1,13 +1,9 @@
-import JsonUploader from "./components/JsonUploader";
+import FileExplorer from "./components/FileExplorer";
 
 function App() {
-    const handleSuccess = (parsedJson: unknown) => {
-        console.log("Sucesso:", parsedJson);
-    };
-
     return (
         <>
-            <JsonUploader onSuccess={handleSuccess} />
+            <FileExplorer />
         </>
     );
 }
