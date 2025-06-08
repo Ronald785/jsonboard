@@ -1,5 +1,15 @@
+import JsonUploader from "./components/JsonUploader";
+
 function App() {
-    return <h1>Hello World!</h1>;
+    const handleSuccess = (parsedJson: unknown) => {
+        console.log("Sucesso:", parsedJson);
+    };
+
+    return (
+        <>
+            <JsonUploader onSuccess={handleSuccess} />
+        </>
+    );
 }
 
 export default App;
