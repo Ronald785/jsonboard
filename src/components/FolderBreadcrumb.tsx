@@ -1,5 +1,5 @@
 import React from "react";
-import type { Folder } from "@/types";
+import type { Folder, FileEntry } from "@/types";
 import {
     Breadcrumb,
     BreadcrumbList,
@@ -11,9 +11,15 @@ import { useAppStore } from "@/stores/use-explore-store";
 
 interface FolderBreadcrumbProps {
     breadcrumb: Folder[];
+    currentFile?: FileEntry | null;
+    onCloseFile?: () => void;
 }
 
-const FolderBreadcrumb: React.FC<FolderBreadcrumbProps> = ({ breadcrumb }) => {
+const FolderBreadcrumb: React.FC<FolderBreadcrumbProps> = ({
+    breadcrumb,
+    currentFile,
+    onCloseFile
+}) => {
     return (
         <Breadcrumb>
             <BreadcrumbList>
@@ -23,6 +29,7 @@ const FolderBreadcrumb: React.FC<FolderBreadcrumbProps> = ({ breadcrumb }) => {
                         onClick={(e) => {
                             e.preventDefault();
                             useAppStore.getState().setCurrentFolderId("");
+                            onCloseFile?.();
                         }}
                     >
                         Home
@@ -40,6 +47,7 @@ const FolderBreadcrumb: React.FC<FolderBreadcrumbProps> = ({ breadcrumb }) => {
                                     useAppStore
                                         .getState()
                                         .setCurrentFolderId(folder.id);
+                                    onCloseFile?.();
                                 }}
                             >
                                 {folder.name}
@@ -47,6 +55,20 @@ const FolderBreadcrumb: React.FC<FolderBreadcrumbProps> = ({ breadcrumb }) => {
                         </BreadcrumbItem>
                     </React.Fragment>
                 ))}
+
+                {currentFile && (
+                    <>
+                        <BreadcrumbSeparator />
+                        <BreadcrumbItem>
+                            <BreadcrumbLink
+                                href="#"
+                                onClick={(e) => e.preventDefault()}
+                            >
+                                {currentFile.name}
+                            </BreadcrumbLink>
+                        </BreadcrumbItem>
+                    </>
+                )}
             </BreadcrumbList>
         </Breadcrumb>
     );
