@@ -10,6 +10,9 @@ interface JsonRendererProps {
     path: (string | number)[];
     rootContent: any;
     onUpdateContent: (updatedContent: any) => void;
+    onStartEditing?: (path: (string | number)[]) => void;
+    onStopEditing?: (path: (string | number)[]) => void;
+    isConflictingMap?: Record<string, boolean>;
 }
 
 const ITEMS_PER_PAGE = 50;
@@ -18,8 +21,14 @@ const JsonRenderer: React.FC<JsonRendererProps> = ({
     data,
     path,
     rootContent,
-    onUpdateContent
+    onUpdateContent,
+    onStartEditing,
+    onStopEditing,
+    isConflictingMap
 }) => {
+    const conflictKey = path.join(".");
+    const isConflicting = !!isConflictingMap?.[conflictKey];
+
     if (Array.isArray(data)) {
         return (
             <JsonArrayRenderer
@@ -27,6 +36,9 @@ const JsonRenderer: React.FC<JsonRendererProps> = ({
                 path={path}
                 rootContent={rootContent}
                 onUpdateContent={onUpdateContent}
+                onStartEditing={onStartEditing}
+                onStopEditing={onStopEditing}
+                isConflictingMap={isConflictingMap}
             />
         );
     } else if (typeof data === "object" && data !== null) {
@@ -36,6 +48,9 @@ const JsonRenderer: React.FC<JsonRendererProps> = ({
                 path={path}
                 rootContent={rootContent}
                 onUpdateContent={onUpdateContent}
+                onStartEditing={onStartEditing}
+                onStopEditing={onStopEditing}
+                isConflictingMap={isConflictingMap}
             />
         );
     } else {
@@ -45,6 +60,9 @@ const JsonRenderer: React.FC<JsonRendererProps> = ({
                 path={path}
                 rootContent={rootContent}
                 onUpdateContent={onUpdateContent}
+                onStartEditing={onStartEditing}
+                onStopEditing={onStopEditing}
+                isConflicting={isConflicting}
             />
         );
     }
@@ -55,7 +73,18 @@ const JsonPrimitiveRenderer: React.FC<{
     path: (string | number)[];
     rootContent: any;
     onUpdateContent: (updatedContent: any) => void;
-}> = ({ value, path, rootContent, onUpdateContent }) => {
+    onStartEditing?: (path: (string | number)[]) => void;
+    onStopEditing?: (path: (string | number)[]) => void;
+    isConflicting?: boolean;
+}> = ({
+    value,
+    path,
+    rootContent,
+    onUpdateContent,
+    onStartEditing,
+    onStopEditing,
+    isConflicting
+}) => {
     const [inputValue, setInputValue] = useState(String(value));
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -63,6 +92,8 @@ const JsonPrimitiveRenderer: React.FC<{
     };
 
     const handleBlur = () => {
+        onStopEditing?.(path);
+
         const updated = structuredClone(rootContent);
         let target = updated;
         for (let i = 0; i < path.length - 1; i++) {
@@ -83,13 +114,20 @@ const JsonPrimitiveRenderer: React.FC<{
         onUpdateContent(updated);
     };
 
+    const handleFocus = () => {
+        onStartEditing?.(path);
+    };
+
     return (
         <input
             type="text"
-            className="editable-input w-full rounded border px-2 py-1"
+            className={`editable-input w-full min-w-32 rounded border px-2 py-1 ${
+                isConflicting ? "border-red-500" : ""
+            }`}
             value={inputValue}
             onChange={handleChange}
             onBlur={handleBlur}
+            onFocus={handleFocus}
             onKeyDown={(e) => {
                 if (e.key === "Enter") {
                     e.preventDefault();
@@ -105,11 +143,11 @@ const JsonArrayRenderer: React.FC<JsonRendererProps> = ({
     data,
     path,
     rootContent,
-    onUpdateContent
+    onUpdateContent,
+    onStartEditing,
+    onStopEditing,
+    isConflictingMap
 }) => {
-    console.log("data: ", data);
-    console.log("rootContent: ", rootContent);
-
     const [visibleCount, setVisibleCount] = useState(ITEMS_PER_PAGE);
     const containerRef = useRef<HTMLDivElement | null>(null);
 
@@ -152,6 +190,9 @@ const JsonArrayRenderer: React.FC<JsonRendererProps> = ({
                                         path={[...path, index]}
                                         rootContent={rootContent}
                                         onUpdateContent={onUpdateContent}
+                                        onStartEditing={onStartEditing}
+                                        onStopEditing={onStopEditing}
+                                        isConflictingMap={isConflictingMap}
                                     />
                                 </td>
                             </tr>
@@ -166,10 +207,13 @@ const JsonObjectRenderer: React.FC<JsonRendererProps> = ({
     data,
     path,
     rootContent,
-    onUpdateContent
+    onUpdateContent,
+    onStartEditing,
+    onStopEditing,
+    isConflictingMap
 }) => {
     return (
-        <div className="mb-4 rounded border">
+        <div className="mb-4 rounded sm:border">
             <table className="w-full border-collapse">
                 <tbody>
                     {Object.entries(data).map(([key, value]) => (
@@ -183,6 +227,9 @@ const JsonObjectRenderer: React.FC<JsonRendererProps> = ({
                                     path={[...path, key]}
                                     rootContent={rootContent}
                                     onUpdateContent={onUpdateContent}
+                                    onStartEditing={onStartEditing}
+                                    onStopEditing={onStopEditing}
+                                    isConflictingMap={isConflictingMap}
                                 />
                             </td>
                         </tr>

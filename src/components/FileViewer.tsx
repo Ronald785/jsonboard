@@ -1,4 +1,8 @@
-import React, { useEffect, useState } from "react";
+/* eslint-disable @typescript-eslint/no-unsafe-call */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+import React, { useEffect, useRef, useState } from "react";
 import type { FileEntry } from "@/types";
 import { Button } from "./ui/button";
 import { getFileContent, updateFileContent } from "@/database/dexieHelpers";
@@ -13,6 +17,9 @@ interface FileViewerProps {
 const FileViewer: React.FC<FileViewerProps> = ({ file, onClose }) => {
     const [content, setContent] = useState<unknown>(null);
     const [loading, setLoading] = useState(true);
+    const broadcastChannel = useRef<BroadcastChannel | null>(null);
+    const [conflicts, setConflicts] = useState<Record<string, boolean>>({});
+    const tabId = useRef<string>(crypto.randomUUID());
 
     useEffect(() => {
         const fetchContent = async () => {
@@ -22,7 +29,6 @@ const FileViewer: React.FC<FileViewerProps> = ({ file, onClose }) => {
                     console.error("Conteúdo não encontrado!");
                     return;
                 }
-                // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
                 const parsed = JSON.parse(fileContent.content);
                 setContent(parsed);
             } catch (error) {
@@ -33,6 +39,77 @@ const FileViewer: React.FC<FileViewerProps> = ({ file, onClose }) => {
         };
         void fetchContent();
     }, [file]);
+
+    useEffect(() => {
+        broadcastChannel.current = new BroadcastChannel(`file-${file.id}`);
+
+        broadcastChannel.current.onmessage = (e) => {
+            if (
+                e.data.type === "file-opened" &&
+                e.data.tabId !== tabId.current
+            ) {
+                broadcastChannel.current?.postMessage({
+                    type: "file-presence",
+                    tabId: tabId.current
+                });
+            }
+
+            if (
+                e.data.type === "file-presence" &&
+                e.data.tabId !== tabId.current
+            ) {
+                toast("Este arquivo já está sendo visualizado em outra aba!", {
+                    // eslint-disable-next-line @typescript-eslint/no-empty-function
+                    action: { label: "Ok", onClick: () => {} }
+                });
+            }
+
+            if (e.data.type === "editing-start") {
+                const path = JSON.parse(e.data.path ?? "[]");
+                setConflicts((prev) => ({
+                    ...prev,
+                    [path.join(".")]: true
+                }));
+            }
+
+            if (e.data.type === "editing-stop") {
+                const path = JSON.parse(e.data.path ?? "[]");
+                setConflicts((prev) => {
+                    const updated = { ...prev };
+                    delete updated[path.join(".")];
+                    return updated;
+                });
+            }
+
+            if (e.data.type === "content-update") {
+                const updated = JSON.parse(e.data.content);
+                setContent(updated);
+                toast("Este arquivo foi atualizado em outra aba!", {
+                    // eslint-disable-next-line @typescript-eslint/no-empty-function
+                    action: { label: "Ok", onClick: () => {} }
+                });
+            }
+        };
+
+        broadcastChannel.current.postMessage({
+            type: "file-opened",
+            tabId: tabId.current
+        });
+
+        return () => broadcastChannel.current?.close();
+    }, [file.id]);
+
+    const broadcastUpdate = (
+        type: string,
+        content?: unknown,
+        path?: (string | number)[]
+    ) => {
+        broadcastChannel.current?.postMessage({
+            type,
+            content: content ? JSON.stringify(content) : undefined,
+            path: path ? JSON.stringify(path) : undefined
+        });
+    };
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const handleUpdateContent = async (updatedContent: any) => {
@@ -68,7 +145,7 @@ const FileViewer: React.FC<FileViewerProps> = ({ file, onClose }) => {
             });
         } catch (error) {
             console.error("Erro ao copiar o conteúdo:", error);
-            toast("Error ao copiar JSON para a área de transferência!", {
+            toast("Erro ao copiar JSON para a área de transferência!", {
                 action: {
                     label: "Ok",
                     onClick: () => console.log("Ok")
@@ -124,7 +201,18 @@ const FileViewer: React.FC<FileViewerProps> = ({ file, onClose }) => {
                                 rootContent={content}
                                 onUpdateContent={(updatedContent) => {
                                     void handleUpdateContent(updatedContent);
+                                    broadcastUpdate(
+                                        "content-update",
+                                        updatedContent
+                                    );
                                 }}
+                                onStartEditing={(path) =>
+                                    broadcastUpdate("editing-start", null, path)
+                                }
+                                onStopEditing={(path) =>
+                                    broadcastUpdate("editing-stop", null, path)
+                                }
+                                isConflictingMap={conflicts}
                             />
                         ) : (
                             <p>Conteúdo vazio ou inválido.</p>
