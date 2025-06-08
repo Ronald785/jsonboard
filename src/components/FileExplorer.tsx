@@ -1,4 +1,4 @@
-import { getFileContent, getFolderPath } from "@/database/dexieHelpers";
+import { getFolderPath } from "@/database/dexieHelpers";
 import { useAppStore } from "@/stores/use-explore-store";
 import type { FileEntry, Folder } from "@/types";
 import { useState, useEffect } from "react";
@@ -32,10 +32,7 @@ const FileExplorer: React.FC = () => {
 
     const handleOpenFile = async (file: FileEntry) => {
         try {
-            const fileContent = await getFileContent(file.contentId);
-            console.log("Conteúdo do arquivo:", fileContent?.content);
             setOpenedFile(file);
-
             const path = await getFolderPath(file.folderId);
             setBreadcrumb(path);
         } catch (error) {
@@ -64,7 +61,9 @@ const FileExplorer: React.FC = () => {
                         onFolderClick={(id) =>
                             useAppStore.getState().setCurrentFolderId(id)
                         }
-                        onFileClick={handleOpenFile}
+                        onFileClick={(file) => {
+                            void handleOpenFile(file);
+                        }}
                     />
                 </>
             ) : (
