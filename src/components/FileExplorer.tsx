@@ -7,6 +7,7 @@ import FolderBreadcrumb from "./FolderBreadcrumb";
 import JsonUploader from "./JsonUploader";
 import FileViewer from "./FileViewer";
 import FolderView from "./FolderView";
+import { SidebarTrigger } from "./ui/sidebar";
 
 const FileExplorer: React.FC = () => {
     const currentFolderId = useAppStore((state) => state.currentFolderId);
@@ -44,7 +45,13 @@ const FileExplorer: React.FC = () => {
 
     return (
         <div className="p-4">
-            <h1 className="mb-4 text-xl font-bold">Explorador de Arquivos</h1>
+            <div className="flex gap-2">
+                <SidebarTrigger />
+                <h1 className="mb-4 text-xl font-bold">
+                    Explorador de Arquivos
+                </h1>
+            </div>
+
             <FolderBreadcrumb
                 breadcrumb={breadcrumb}
                 currentFile={openedFile}
@@ -52,9 +59,9 @@ const FileExplorer: React.FC = () => {
             />
 
             {!openedFile ? (
-                <>
-                    <CreateFolderForm />
-                    <JsonUploader onSuccess={() => {}} />
+                <div className="grid gap-4">
+                    {/* <CreateFolderForm />
+                    <JsonUploader onSuccess={() => {}} /> */}
                     <FolderView
                         folders={folders}
                         files={files}
@@ -65,7 +72,7 @@ const FileExplorer: React.FC = () => {
                             void handleOpenFile(file);
                         }}
                     />
-                </>
+                </div>
             ) : (
                 <FileViewer file={openedFile} onClose={handleCloseFile} />
             )}
