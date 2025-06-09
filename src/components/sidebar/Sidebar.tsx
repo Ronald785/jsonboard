@@ -42,6 +42,7 @@ const SidebarComponent: React.FC = () => {
     const setCurrentFolderId = useAppStore((state) => state.setCurrentFolderId);
     const addFolder = useAppStore((state) => state.addFolder);
     const currentFolderId = useAppStore((state) => state.currentFolderId);
+    const refreshSidebar = useAppStore((state) => state.refreshSidebar);
 
     const [rootFolders, setRootFolders] = useState<Folder[]>([]);
     const [expandedFolders, setExpandedFolders] = useState<Set<string>>(
@@ -81,17 +82,25 @@ const SidebarComponent: React.FC = () => {
     };
 
     useEffect(() => {
-        fetchData();
-        const handleStorage = (event: StorageEvent) => {
-            if (event.key === "sidebar-refresh") {
-                void fetchData();
-            }
-        };
-        window.addEventListener("storage", handleStorage);
+        void fetchData();
+        // const handleStorage = (event: StorageEvent) => {
+        //     console.log("Escutou");
+
+        //     if (event.key === "sidebar-refresh") {
+        //         console.log("Escutou 2");
+
+        //         void fetchData();
+        //     }
+        // };
+        // window.addEventListener("storage", handleStorage);
         return () => {
-            window.removeEventListener("storage", handleStorage);
+            // window.removeEventListener("storage", handleStorage);
         };
     }, []);
+
+    useEffect(() => {
+        void fetchData();
+    }, [refreshSidebar]);
 
     const handleCreateFolder = async () => {
         if (!newFolderName.trim()) return;
@@ -99,7 +108,7 @@ const SidebarComponent: React.FC = () => {
         setNewFolderName("");
         setDialogOpen(false);
         await fetchData();
-        localStorage.setItem("sidebar-refresh", Date.now().toString());
+        // localStorage.setItem("sidebar-refresh", Date.now().toString());
     };
 
     const formatSize = (bytes: number) => {
@@ -176,7 +185,12 @@ const SidebarComponent: React.FC = () => {
                         <SidebarMenu>
                             <SidebarMenuItem>
                                 <SidebarMenuButton asChild>
-                                    <Button className="cursor-pointer">
+                                    <Button
+                                        className="cursor-pointer"
+                                        onClick={() => {
+                                            setCurrentFolderId("");
+                                        }}
+                                    >
                                         <House size={16} />
                                         Home
                                     </Button>

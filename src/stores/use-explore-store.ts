@@ -17,7 +17,9 @@ interface AppState {
     currentFolderId: string;
     files: FileEntry[];
     folders: Folder[];
+    refreshSidebar: number;
 
+    triggerSidebarRefresh: () => void;
     setCurrentFolderId: (id: string) => void;
     loadFolderContents: (folderId: string) => Promise<void>;
     addFile: (name: string, content: string) => Promise<void>;
@@ -35,6 +37,9 @@ export const useAppStore = create<AppState>()(
             currentFolderId: "", // default root
             files: [],
             folders: [],
+            refreshSidebar: 0,
+            triggerSidebarRefresh: () =>
+                set((state) => ({ refreshSidebar: state.refreshSidebar + 1 })),
 
             setCurrentFolderId: (id) => {
                 set((state) => {
