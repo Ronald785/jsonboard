@@ -29,9 +29,11 @@ import {
     AlertDialogTitle,
     AlertDialogFooter,
     AlertDialogCancel,
-    AlertDialogAction
+    AlertDialogAction,
+    AlertDialogDescription
 } from "./ui/alert-dialog";
 import { EllipsisVertical } from "lucide-react";
+import FolderSelectDialog from "./FolderSelectDialog";
 
 const FileExplorer: React.FC = () => {
     const currentFolderId = useAppStore((state) => state.currentFolderId);
@@ -54,6 +56,14 @@ const FileExplorer: React.FC = () => {
 
     const [deleteFolderDialogOpen, setDeleteFolderDialogOpen] = useState(false);
 
+    const [isSelecting, setIsSelecting] = useState(false);
+    const [selectedItems, setSelectedItems] = useState<string[]>([]);
+    const [moveDialogOpen, setMoveDialogOpen] = useState(false);
+    const [deleteTarget, setDeleteTarget] = useState<FileEntry | Folder | null>(
+        null
+    );
+    const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+
     useEffect(() => {
         const fetchData = async () => {
             try {
@@ -66,6 +76,25 @@ const FileExplorer: React.FC = () => {
         };
         void fetchData();
     }, [currentFolderId, loadFolderContents]);
+
+    useEffect(() => {
+        const clearSelection = () => {
+            setSelectedItems([]);
+            setIsSelecting(false);
+        };
+        window.addEventListener("clear-selection", clearSelection);
+        return () => {
+            window.removeEventListener("clear-selection", clearSelection);
+        };
+    }, []);
+
+    const handleMoveConfirm = async (targetId: string) => {
+        await useAppStore.getState().moveItems(selectedItems, targetId);
+        setSelectedItems([]);
+        setIsSelecting(false);
+        setMoveDialogOpen(false);
+        await loadFolderContents(currentFolderId);
+    };
 
     const handleOpenFile = async (file: FileEntry) => {
         try {
@@ -86,9 +115,7 @@ const FileExplorer: React.FC = () => {
 
     const handleRenameConfirm = async () => {
         if (!renameItem) return;
-
         const folderId = currentFolderId;
-
         if ("contentId" in renameItem) {
             await useAppStore.getState().renameFile(renameItem.id, newName);
         } else {
@@ -96,28 +123,22 @@ const FileExplorer: React.FC = () => {
             useAppStore.getState().triggerSidebarRefresh();
             localStorage.setItem("sidebar-refresh", Date.now().toString());
         }
-
         await loadFolderContents(folderId);
         const path = await getFolderPath(folderId);
         setBreadcrumb(path);
-
         setRenameItem(null);
     };
 
     const handleDeleteFolder = async () => {
         if (!breadcrumb.length) return;
-
         const folderIdToDelete = breadcrumb[breadcrumb.length - 1].id;
         const parentFolderId =
             breadcrumb.length > 1 ? breadcrumb[breadcrumb.length - 2].id : "";
-
         await useAppStore.getState().deleteFolderById(folderIdToDelete);
         useAppStore.getState().triggerSidebarRefresh();
-
         await loadFolderContents(parentFolderId);
         const path = await getFolderPath(parentFolderId);
         setBreadcrumb(path);
-
         setDeleteFolderDialogOpen(false);
         localStorage.setItem("sidebar-refresh", Date.now().toString());
     };
@@ -125,7 +146,6 @@ const FileExplorer: React.FC = () => {
     const filteredFiles = files.filter((file) =>
         file.name.toLowerCase().includes(searchTerm.toLowerCase())
     );
-
     const sortedFiles = [...filteredFiles].sort((a, b) => {
         const valA = a[orderBy];
         const valB = b[orderBy];
@@ -134,9 +154,25 @@ const FileExplorer: React.FC = () => {
         return 0;
     });
 
+    const handleConfirmDelete = async () => {
+        if (!deleteTarget) return;
+
+        if ("contentId" in deleteTarget) {
+            await useAppStore.getState().deleteFileById(deleteTarget.id);
+        } else {
+            await useAppStore.getState().deleteFolderById(deleteTarget.id);
+            useAppStore.getState().triggerSidebarRefresh();
+            localStorage.setItem("sidebar-refresh", Date.now().toString());
+        }
+
+        await loadFolderContents(currentFolderId);
+        setDeleteTarget(null);
+        setDeleteDialogOpen(false);
+    };
+
     return (
         <div className="h-full w-full p-4">
-            <div className="h-full w-full rounded-2xl bg-zinc-100 p-4">
+            <div className="flex h-full w-full flex-col rounded-2xl bg-zinc-100 p-4">
                 <FolderBreadcrumb
                     breadcrumb={breadcrumb}
                     currentFile={openedFile}
@@ -194,11 +230,7 @@ const FileExplorer: React.FC = () => {
 
                     <Select
                         value={orderBy}
-                        onValueChange={(value) =>
-                            setOrderBy(
-                                value as "name" | "createdAt" | "lastModified"
-                            )
-                        }
+                        onValueChange={(val) => setOrderBy(val as any)}
                     >
                         <SelectTrigger className="w-40">
                             <SelectValue placeholder="Ordenar por" />
@@ -216,9 +248,7 @@ const FileExplorer: React.FC = () => {
 
                     <Select
                         value={orderDirection}
-                        onValueChange={(value) =>
-                            setOrderDirection(value as "asc" | "desc")
-                        }
+                        onValueChange={(val) => setOrderDirection(val as any)}
                     >
                         <SelectTrigger className="w-40">
                             <SelectValue placeholder="Direção" />
@@ -228,29 +258,54 @@ const FileExplorer: React.FC = () => {
                             <SelectItem value="desc">Descendente</SelectItem>
                         </SelectContent>
                     </Select>
+
+                    {!isSelecting ? (
+                        <Button onClick={() => setIsSelecting(true)}>
+                            Selecionar
+                        </Button>
+                    ) : (
+                        <>
+                            <Button
+                                disabled={selectedItems.length === 0}
+                                onClick={() => setMoveDialogOpen(true)}
+                            >
+                                Mover ({selectedItems.length})
+                            </Button>
+                            <Button
+                                variant="secondary"
+                                onClick={() => {
+                                    setIsSelecting(false);
+                                    setSelectedItems([]);
+                                }}
+                            >
+                                Cancelar
+                            </Button>
+                        </>
+                    )}
                 </div>
 
                 {!openedFile ? (
-                    <div className="grid gap-4">
+                    <div className="flex-1">
                         <FolderView
                             folders={folders}
                             files={sortedFiles}
                             onFolderClick={(id) =>
                                 useAppStore.getState().setCurrentFolderId(id)
                             }
-                            onFileClick={(file) => void handleOpenFile(file)}
-                            onRenameFile={(file) => handleRename(file)}
-                            onDeleteFile={async (fileId) => {
-                                await useAppStore
-                                    .getState()
-                                    .deleteFileById(fileId);
+                            setDeleteTarget={setDeleteTarget}
+                            setDeleteDialogOpen={setDeleteDialogOpen}
+                            setIsSelecting={setIsSelecting}
+                            onFileClick={handleOpenFile}
+                            onRenameFile={(f) => handleRename(f)}
+                            onDeleteFile={async (id) => {
+                                await useAppStore.getState().deleteFileById(id);
                                 await loadFolderContents(currentFolderId);
                             }}
-                            onRenameFolder={(folder) => handleRename(folder)}
-                            onDeleteFolder={async (folderId) => {
+                            onRenameFolder={(f) => handleRename(f)}
+                            onDeleteFolder={async (id) => {
                                 await useAppStore
                                     .getState()
-                                    .deleteFolderById(folderId);
+                                    .deleteFolderById(id);
                                 useAppStore.getState().triggerSidebarRefresh();
                                 await loadFolderContents(currentFolderId);
                                 const path =
@@ -261,11 +316,29 @@ const FileExplorer: React.FC = () => {
                                     Date.now().toString()
                                 );
                             }}
+                            isSelecting={isSelecting}
+                            selectedItems={selectedItems}
+                            setSelectedItems={setSelectedItems}
                         />
                     </div>
                 ) : (
                     <FileViewer file={openedFile} onClose={handleCloseFile} />
                 )}
+
+                <Dialog open={moveDialogOpen} onOpenChange={setMoveDialogOpen}>
+                    <DialogContent className="w-96">
+                        <DialogHeader>
+                            <DialogTitle>
+                                Escolha a pasta de destino
+                            </DialogTitle>
+                        </DialogHeader>
+                        <FolderSelectDialog
+                            initialFolderId={currentFolderId}
+                            onConfirm={handleMoveConfirm}
+                            onCancel={() => setMoveDialogOpen(false)}
+                        />
+                    </DialogContent>
+                </Dialog>
 
                 <Dialog
                     open={!!renameItem}
@@ -278,7 +351,6 @@ const FileExplorer: React.FC = () => {
                             </DialogTitle>
                         </DialogHeader>
                         <Input
-                            type="text"
                             value={newName}
                             onChange={(e) => setNewName(e.target.value)}
                             className="mt-2"
@@ -304,12 +376,42 @@ const FileExplorer: React.FC = () => {
                     <AlertDialogContent>
                         <AlertDialogHeader>
                             <AlertDialogTitle>Excluir Pasta?</AlertDialogTitle>
-                            Tem certeza que deseja excluir esta pasta? Esta ação
-                            não pode ser desfeita.
+                            <AlertDialogDescription>
+                                Tem certeza que deseja excluir esta pasta? Esta
+                                ação não pode ser desfeita.
+                            </AlertDialogDescription>
                         </AlertDialogHeader>
                         <AlertDialogFooter>
                             <AlertDialogCancel>Cancelar</AlertDialogCancel>
                             <AlertDialogAction onClick={handleDeleteFolder}>
+                                Excluir
+                            </AlertDialogAction>
+                        </AlertDialogFooter>
+                    </AlertDialogContent>
+                </AlertDialog>
+
+                <AlertDialog
+                    open={deleteDialogOpen}
+                    onOpenChange={setDeleteDialogOpen}
+                >
+                    <AlertDialogContent>
+                        <AlertDialogHeader>
+                            <AlertDialogTitle>
+                                Confirmar Exclusão
+                            </AlertDialogTitle>
+                            <AlertDialogDescription>
+                                Tem certeza que deseja excluir "
+                                {deleteTarget?.name}"? Esta ação não poderá ser
+                                desfeita.
+                            </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                            <AlertDialogCancel
+                                onClick={() => setDeleteDialogOpen(false)}
+                            >
+                                Cancelar
+                            </AlertDialogCancel>
+                            <AlertDialogAction onClick={handleConfirmDelete}>
                                 Excluir
                             </AlertDialogAction>
                         </AlertDialogFooter>

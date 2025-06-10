@@ -139,7 +139,21 @@ const SidebarComponent: React.FC = () => {
         };
 
         return (
-            <SidebarMenuItem key={folder.id}>
+            <SidebarMenuItem
+                key={folder.id}
+                onDragOver={(e) => e.preventDefault()}
+                onDrop={async (e) => {
+                    e.preventDefault();
+                    const data = JSON.parse(
+                        e.dataTransfer.getData("application/json")
+                    );
+                    await useAppStore.getState().moveItems(data.ids, folder.id);
+
+                    useAppStore.getState().triggerSidebarRefresh();
+
+                    window.dispatchEvent(new CustomEvent("clear-selection"));
+                }}
+            >
                 {hasChildren ? (
                     <Collapsible open={isExpanded} onOpenChange={handleToggle}>
                         <CollapsibleTrigger asChild>
@@ -189,6 +203,27 @@ const SidebarComponent: React.FC = () => {
                                         className="cursor-pointer"
                                         onClick={() => {
                                             setCurrentFolderId("");
+                                        }}
+                                        onDragOver={(e) => e.preventDefault()}
+                                        onDrop={async (e) => {
+                                            e.preventDefault();
+                                            const data = JSON.parse(
+                                                e.dataTransfer.getData(
+                                                    "application/json"
+                                                )
+                                            );
+                                            await useAppStore
+                                                .getState()
+                                                .moveItems(data.ids, "");
+
+                                            window.dispatchEvent(
+                                                new CustomEvent(
+                                                    "clear-selection"
+                                                )
+                                            );
+                                            await useAppStore
+                                                .getState()
+                                                .loadFolderContents("");
                                         }}
                                     >
                                         <House size={16} />

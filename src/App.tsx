@@ -6,11 +6,9 @@ import { SidebarProvider } from "@/components/ui/sidebar";
 function App() {
     return (
         <SidebarProvider>
-            <div className="flex">
+            <div className="flex w-full">
                 <SidebarComponent />
-                <div className="flex-1">
-                    <FileExplorer />
-                </div>
+                <FileExplorer />
                 <Toaster />
             </div>
         </SidebarProvider>

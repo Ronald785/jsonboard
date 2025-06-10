@@ -215,3 +215,7 @@ export async function getFolderPath(folderId: string): Promise<Folder[]> {
 
     return path;
 }
+
+export async function getSubfolders(parentId: string): Promise<Folder[]> {
+    return db.folders.where("folderId").equals(parentId).toArray();
+}

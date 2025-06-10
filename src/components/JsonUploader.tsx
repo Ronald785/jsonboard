@@ -182,7 +182,7 @@ const JsonUploader: React.FC<JsonUploaderProps> = ({ onSuccess }) => {
     };
 
     return (
-        <div className="mt-4">
+        <div className="">
             <h2>Validador JSON</h2>
             <div className="mt-3 grid w-full max-w-sm items-center gap-3">
                 <Label htmlFor="json">Enviar JSON</Label>
