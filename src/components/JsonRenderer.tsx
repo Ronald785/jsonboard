@@ -155,7 +155,7 @@ const JsonArrayRenderer: React.FC<JsonRendererProps> = ({
         if (containerRef.current) {
             const { scrollTop, scrollHeight, clientHeight } =
                 containerRef.current;
-            if (scrollTop + clientHeight >= scrollHeight - 50) {
+            if (scrollTop + clientHeight >= scrollHeight - 80) {
                 setVisibleCount((prev) =>
                     Math.min(prev + ITEMS_PER_PAGE, data.length)
                 );
@@ -173,8 +173,8 @@ const JsonArrayRenderer: React.FC<JsonRendererProps> = ({
             <table className="w-full border-collapse">
                 <thead>
                     <tr>
-                        <th className="bg-gray-200 px-2 py-1">Índice</th>
-                        <th className="bg-gray-200 px-2 py-1">Valor</th>
+                        <th className="bg-accent px-2 py-1">Índice</th>
+                        <th className="bg-accent px-2 py-1">Valor</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -218,7 +218,7 @@ const JsonObjectRenderer: React.FC<JsonRendererProps> = ({
                 <tbody>
                     {Object.entries(data).map(([key, value]) => (
                         <tr key={key} className="border-b">
-                            <td className="bg-gray-100 px-2 py-1 font-bold">
+                            <td className="bg-accent px-2 py-1 font-bold">
                                 {key}
                             </td>
                             <td className="px-2 py-1">

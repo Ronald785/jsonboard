@@ -157,8 +157,8 @@ const SidebarComponent: React.FC = () => {
                 {hasChildren ? (
                     <Collapsible open={isExpanded} onOpenChange={handleToggle}>
                         <CollapsibleTrigger asChild>
-                            <SidebarMenuButton>
-                                <FolderIcon size={16} />
+                            <SidebarMenuButton size={"lg"} className="text-lg">
+                                <FolderIcon size={24} />
                                 {/* Clique apenas no nome da pasta */}
                                 <span
                                     onClick={handleSelectFolder}
@@ -182,7 +182,11 @@ const SidebarComponent: React.FC = () => {
                         </CollapsibleContent>
                     </Collapsible>
                 ) : (
-                    <SidebarMenuButton onClick={handleSelectFolder}>
+                    <SidebarMenuButton
+                        size={"lg"}
+                        onClick={handleSelectFolder}
+                        className="text-lg"
+                    >
                         <FolderIcon size={16} />
                         <span>{folder.name}</span>
                     </SidebarMenuButton>
@@ -237,7 +241,9 @@ const SidebarComponent: React.FC = () => {
             </SidebarHeader>
             <SidebarContent>
                 <SidebarGroup>
-                    <SidebarGroupLabel>Pastas</SidebarGroupLabel>
+                    <SidebarGroupLabel className="text-lg">
+                        Pastas
+                    </SidebarGroupLabel>
                     <SidebarMenu>
                         {rootFolders.map((folder) => renderFolder(folder))}
                     </SidebarMenu>

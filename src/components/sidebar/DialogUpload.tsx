@@ -24,7 +24,7 @@ const DialogUploadComponent: React.FC<DialogUploadComponentProps> = ({
     return (
         <Dialog open={uploadDialogOpen} onOpenChange={setUploadDialogOpen}>
             <DialogTrigger asChild>
-                <Button type="button" className="mt-2 w-full">
+                <Button type="button" className="mt-2 w-full cursor-pointer">
                     <FileUp size={16} />
                     Upload de JSONs
                 </Button>

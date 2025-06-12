@@ -62,7 +62,7 @@ const FolderView: React.FC<FolderViewProps> = ({
             />
             {folders.length > 0 && (
                 <>
-                    <h2 className="text-lg font-semibold select-none">
+                    <h2 className="mb-4 text-lg font-semibold select-none">
                         Pastas
                     </h2>
                     <div className="flex flex-wrap gap-4">
@@ -103,9 +103,9 @@ const FolderView: React.FC<FolderViewProps> = ({
                                                 .currentFolderId
                                         );
                                 }}
-                                // className="flex w-full max-w-sm items-center justify-between rounded border bg-white p-2 shadow"
+                                // className="flex w-full max-w-sm items-center justify-between rounded border bg-accent p-2 shadow"
                                 className={cn(
-                                    `flex w-full max-w-sm items-center justify-between rounded border bg-white p-2 shadow ${selectedItems.includes(folder.id) ? "bg-blue-100" : ""}`
+                                    `bg-accent flex w-full max-w-sm items-center justify-between rounded border p-2 shadow ${selectedItems.includes(folder.id) ? "bg-blue-100" : ""}`
                                 )}
                             >
                                 {isSelecting && (
@@ -141,6 +141,7 @@ const FolderView: React.FC<FolderViewProps> = ({
                                             variant="ghost"
                                             size="icon"
                                             onClick={(e) => e.stopPropagation()}
+                                            className="cursor-pointer"
                                         >
                                             <EllipsisVertical />
                                         </Button>
@@ -173,7 +174,7 @@ const FolderView: React.FC<FolderViewProps> = ({
 
             {files.length > 0 && (
                 <>
-                    <h2 className="mt-6 mb-2 text-lg font-semibold select-none">
+                    <h2 className="mt-6 mb-4 text-lg font-semibold select-none">
                         Arquivos
                     </h2>
                     <div className="flex flex-wrap gap-4">
@@ -192,9 +193,9 @@ const FolderView: React.FC<FolderViewProps> = ({
                                         })
                                     );
                                 }}
-                                // className="flex w-full max-w-sm items-center justify-between rounded border bg-white p-2 shadow"
+                                // className="flex w-full max-w-sm items-center justify-between rounded border bg-accent p-2 shadow"
                                 className={cn(
-                                    `flex w-full max-w-sm items-center justify-between rounded border bg-white p-2 shadow ${selectedItems.includes(file.id) ? "bg-blue-100" : ""}`
+                                    `bg-accent flex w-full max-w-sm items-center justify-between rounded border p-2 shadow ${selectedItems.includes(file.id) ? "bg-blue-100" : ""}`
                                 )}
                             >
                                 {isSelecting && (
@@ -229,6 +230,7 @@ const FolderView: React.FC<FolderViewProps> = ({
                                             variant="ghost"
                                             size="icon"
                                             onClick={(e) => e.stopPropagation()}
+                                            className="cursor-pointer"
                                         >
                                             <EllipsisVertical />
                                         </Button>

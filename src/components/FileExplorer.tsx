@@ -172,15 +172,15 @@ const FileExplorer: React.FC = () => {
 
     return (
         <div className="h-full w-full p-4">
-            <div className="flex h-full w-full flex-col rounded-2xl bg-zinc-100 p-4">
+            <div className="bg-accent flex h-full w-full flex-col rounded-2xl p-4">
                 <FolderBreadcrumb
                     breadcrumb={breadcrumb}
                     currentFile={openedFile}
                     onCloseFile={handleCloseFile}
                 />
 
-                <div className="my-2 flex gap-2">
-                    <SidebarTrigger />
+                <div className="my-4 flex gap-2">
+                    <SidebarTrigger className="bg-accent-foreground text-accent cursor-pointer" />
                     <h1 className="text-xl font-bold">
                         Explorador de Arquivos
                     </h1>
@@ -194,7 +194,10 @@ const FileExplorer: React.FC = () => {
                     </h2>
                     {breadcrumb.length > 0 && (
                         <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
+                            <DropdownMenuTrigger
+                                asChild
+                                className="cursor-pointer"
+                            >
                                 <EllipsisVertical />
                             </DropdownMenuTrigger>
                             <DropdownMenuContent>
@@ -219,70 +222,79 @@ const FileExplorer: React.FC = () => {
                     )}
                 </div>
 
-                <div className="my-4 flex flex-wrap gap-4">
-                    <Input
-                        type="text"
-                        placeholder="Pesquisar arquivos..."
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                        className="w-full bg-white md:w-1/3"
-                    />
+                {!openedFile && (
+                    <div className="my-4 flex flex-wrap gap-4">
+                        <Input
+                            type="text"
+                            placeholder="Pesquisar arquivos..."
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                            className="w-full bg-white md:w-1/3"
+                        />
 
-                    <Select
-                        value={orderBy}
-                        onValueChange={(val) => setOrderBy(val as any)}
-                    >
-                        <SelectTrigger className="w-40">
-                            <SelectValue placeholder="Ordenar por" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="name">Nome</SelectItem>
-                            <SelectItem value="createdAt">
-                                Data de criação
-                            </SelectItem>
-                            <SelectItem value="lastModified">
-                                Data de atualização
-                            </SelectItem>
-                        </SelectContent>
-                    </Select>
+                        <Select
+                            value={orderBy}
+                            onValueChange={(val) => setOrderBy(val as any)}
+                        >
+                            <SelectTrigger className="w-40 bg-white">
+                                <SelectValue placeholder="Ordenar por" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="name">Nome</SelectItem>
+                                <SelectItem value="createdAt">
+                                    Data de criação
+                                </SelectItem>
+                                <SelectItem value="lastModified">
+                                    Data de atualização
+                                </SelectItem>
+                            </SelectContent>
+                        </Select>
 
-                    <Select
-                        value={orderDirection}
-                        onValueChange={(val) => setOrderDirection(val as any)}
-                    >
-                        <SelectTrigger className="w-40">
-                            <SelectValue placeholder="Direção" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="asc">Ascendente</SelectItem>
-                            <SelectItem value="desc">Descendente</SelectItem>
-                        </SelectContent>
-                    </Select>
+                        <Select
+                            value={orderDirection}
+                            onValueChange={(val) =>
+                                setOrderDirection(val as any)
+                            }
+                        >
+                            <SelectTrigger className="w-40 bg-white">
+                                <SelectValue placeholder="Direção" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="asc">Ascendente</SelectItem>
+                                <SelectItem value="desc">
+                                    Descendente
+                                </SelectItem>
+                            </SelectContent>
+                        </Select>
 
-                    {!isSelecting ? (
-                        <Button onClick={() => setIsSelecting(true)}>
-                            Selecionar
-                        </Button>
-                    ) : (
-                        <>
+                        {!isSelecting ? (
                             <Button
-                                disabled={selectedItems.length === 0}
-                                onClick={() => setMoveDialogOpen(true)}
+                                onClick={() => setIsSelecting(true)}
+                                className="cursor-pointer"
                             >
-                                Mover ({selectedItems.length})
+                                Selecionar
                             </Button>
-                            <Button
-                                variant="secondary"
-                                onClick={() => {
-                                    setIsSelecting(false);
-                                    setSelectedItems([]);
-                                }}
-                            >
-                                Cancelar
-                            </Button>
-                        </>
-                    )}
-                </div>
+                        ) : (
+                            <>
+                                <Button
+                                    disabled={selectedItems.length === 0}
+                                    onClick={() => setMoveDialogOpen(true)}
+                                >
+                                    Mover ({selectedItems.length})
+                                </Button>
+                                <Button
+                                    variant="secondary"
+                                    onClick={() => {
+                                        setIsSelecting(false);
+                                        setSelectedItems([]);
+                                    }}
+                                >
+                                    Cancelar
+                                </Button>
+                            </>
+                        )}
+                    </div>
+                )}
 
                 {!openedFile ? (
                     <div className="flex-1">

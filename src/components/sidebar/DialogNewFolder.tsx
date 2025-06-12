@@ -30,7 +30,7 @@ const DialogNewFolder: React.FC<DialogUploadComponentProps> = ({
     return (
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
             <DialogTrigger asChild>
-                <Button type="button" className="mt-2 w-full">
+                <Button type="button" className="mt-2 w-full cursor-pointer">
                     <FolderPlus size={16} />
                     Nova Pasta
                 </Button>
