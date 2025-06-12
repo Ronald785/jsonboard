@@ -106,7 +106,7 @@ const FolderView: React.FC<FolderViewProps> = ({
                                 }}
                                 // className="flex w-full max-w-sm items-center justify-between rounded border bg-accent p-2 shadow"
                                 className={cn(
-                                    `bg-accent flex w-full max-w-sm items-center justify-between rounded border p-2 shadow ${selectedItems.includes(folder.id) ? "bg-blue-100" : ""}`
+                                    `bg-accent flex w-full max-w-sm items-center justify-between rounded border p-2 shadow ${selectedItems.includes(folder.id) ? "bg-blue-100 dark:bg-blue-950" : ""}`
                                 )}
                             >
                                 {isSelecting && (
@@ -196,7 +196,7 @@ const FolderView: React.FC<FolderViewProps> = ({
                                 }}
                                 // className="flex w-full max-w-sm items-center justify-between rounded border bg-accent p-2 shadow"
                                 className={cn(
-                                    `bg-accent flex w-full max-w-sm items-center justify-between rounded border p-2 shadow ${selectedItems.includes(file.id) ? "bg-blue-100" : ""}`
+                                    `bg-accent flex w-full max-w-sm items-center justify-between rounded border p-2 shadow ${selectedItems.includes(file.id) ? "bg-blue-100 dark:bg-blue-950" : ""}`
                                 )}
                             >
                                 {isSelecting && (
