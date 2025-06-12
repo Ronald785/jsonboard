@@ -3,15 +3,7 @@ import { useAppStore } from "@/stores/use-explore-store";
 import { db } from "@/database/db";
 import { Button } from "../ui/button";
 import type { Folder } from "@/types";
-import {
-    BookOpen,
-    Bot,
-    ChevronRight,
-    Folder as FolderIcon,
-    House,
-    Plus,
-    SquareTerminal
-} from "lucide-react";
+import { ChevronRight, Folder as FolderIcon, House } from "lucide-react";
 
 import {
     Collapsible,
@@ -30,9 +22,7 @@ import {
     SidebarMenu,
     SidebarMenuButton,
     SidebarMenuItem,
-    SidebarMenuSub,
-    SidebarMenuSubButton,
-    SidebarMenuSubItem
+    SidebarMenuSub
 } from "../ui/sidebar";
 
 import DialogUploadComponent from "./DialogUpload";
@@ -41,7 +31,7 @@ import DialogNewFolder from "./DialogNewFolder";
 const SidebarComponent: React.FC = () => {
     const setCurrentFolderId = useAppStore((state) => state.setCurrentFolderId);
     const addFolder = useAppStore((state) => state.addFolder);
-    const currentFolderId = useAppStore((state) => state.currentFolderId);
+    // const currentFolderId = useAppStore((state) => state.currentFolderId);
     const refreshSidebar = useAppStore((state) => state.refreshSidebar);
 
     const [rootFolders, setRootFolders] = useState<Folder[]>([]);

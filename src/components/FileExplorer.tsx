@@ -307,27 +307,10 @@ const FileExplorer: React.FC = () => {
                             setDeleteTarget={setDeleteTarget}
                             setDeleteDialogOpen={setDeleteDialogOpen}
                             setIsSelecting={setIsSelecting}
+                            // eslint-disable-next-line @typescript-eslint/no-misused-promises
                             onFileClick={handleOpenFile}
                             onRenameFile={(f) => handleRename(f)}
-                            onDeleteFile={async (id) => {
-                                await useAppStore.getState().deleteFileById(id);
-                                await loadFolderContents(currentFolderId);
-                            }}
                             onRenameFolder={(f) => handleRename(f)}
-                            onDeleteFolder={async (id) => {
-                                await useAppStore
-                                    .getState()
-                                    .deleteFolderById(id);
-                                useAppStore.getState().triggerSidebarRefresh();
-                                await loadFolderContents(currentFolderId);
-                                const path =
-                                    await getFolderPath(currentFolderId);
-                                setBreadcrumb(path);
-                                localStorage.setItem(
-                                    "sidebar-refresh",
-                                    Date.now().toString()
-                                );
-                            }}
                             isSelecting={isSelecting}
                             selectedItems={selectedItems}
                             setSelectedItems={setSelectedItems}

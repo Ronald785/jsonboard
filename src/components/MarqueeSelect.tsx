@@ -2,7 +2,7 @@ import React, { useRef, useState, useEffect } from "react";
 
 interface Props {
     onSelect: (ids: string[]) => void;
-    containerRef: React.RefObject<HTMLElement>;
+    containerRef: React.RefObject<HTMLDivElement | null>;
     getSelectableElements: () => HTMLElement[];
 }
 

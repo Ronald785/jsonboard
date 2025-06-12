@@ -45,9 +45,10 @@ const FolderView: React.FC<FolderViewProps> = ({
     const containerRef = useRef<HTMLDivElement>(null);
 
     const getSelectableElements = () => {
+        // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
         return Array.from(
             containerRef.current?.querySelectorAll("[data-id]") || []
-        );
+        ) as HTMLElement[];
     };
 
     return (
