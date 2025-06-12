@@ -118,6 +118,20 @@ Acesse em: [http://localhost:5173/](http://localhost:5173/)
     - Edições propagadas em tempo real entre abas abertas
     - Conflitos tratados com base no `contentId` e notificação visual
 
+## 🔧 Correções e Melhorias
+
+### 🐞 Correções
+
+- Correção do cálculo de **espaço utilizado** ao fazer upload de arquivos.
+- Ajuste no comportamento do **marquee selection** (seleção por arrasto), corrigindo o `position: fixed`.
+- Correção de salvamento no **`thead` principal** caso o usuário feche a aba entre as etapas de _reading_ e _parsing_ do arquivo.
+
+### 🌱 Melhorias Futuras
+
+- **Resolver o limite de alocação de memória no parsing**: investigar técnicas de parsing em blocos ou segmentado, uso de _WebAssembly_, ou parsing progressivo para evitar estouro de memória com arquivos grandes.
+- Integração com um banco de dados **NoSQL** como **MongoDB** ou **Firebase** para escalabilidade e sincronização remota.
+- Alternativamente, uso de um banco **relacional** como **PostgreSQL**, que oferece suporte avançado a campos JSON e melhor modelagem de dados estruturados.
+
 ---
 
 ## ⚙️ Tecnologias Utilizadas
