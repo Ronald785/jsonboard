@@ -59,6 +59,7 @@ const FileExplorer: React.FC = () => {
     const [isSelecting, setIsSelecting] = useState(false);
     const [selectedItems, setSelectedItems] = useState<string[]>([]);
     const [moveDialogOpen, setMoveDialogOpen] = useState(false);
+    const [bulkDeleteDialogOpen, setBulkDeleteDialogOpen] = useState(false);
     const [deleteTarget, setDeleteTarget] = useState<FileEntry | Folder | null>(
         null
     );
@@ -93,6 +94,24 @@ const FileExplorer: React.FC = () => {
         setSelectedItems([]);
         setIsSelecting(false);
         setMoveDialogOpen(false);
+        await loadFolderContents(currentFolderId);
+    };
+
+    const handleBulkDelete = async () => {
+        const store = useAppStore.getState();
+        const fileIds = new Set(files.map((f) => f.id));
+        for (const id of selectedItems) {
+            if (fileIds.has(id)) {
+                await store.deleteFileById(id);
+            } else {
+                await store.deleteFolderById(id);
+                store.triggerSidebarRefresh();
+                localStorage.setItem("sidebar-refresh", Date.now().toString());
+            }
+        }
+        setSelectedItems([]);
+        setIsSelecting(false);
+        setBulkDeleteDialogOpen(false);
         await loadFolderContents(currentFolderId);
     };
 
@@ -283,6 +302,13 @@ const FileExplorer: React.FC = () => {
                                     Mover ({selectedItems.length})
                                 </Button>
                                 <Button
+                                    variant="destructive"
+                                    disabled={selectedItems.length === 0}
+                                    onClick={() => setBulkDeleteDialogOpen(true)}
+                                >
+                                    Excluir ({selectedItems.length})
+                                </Button>
+                                <Button
                                     variant="secondary"
                                     onClick={() => {
                                         setIsSelecting(false);
@@ -407,6 +433,26 @@ const FileExplorer: React.FC = () => {
                                 Cancelar
                             </AlertDialogCancel>
                             <AlertDialogAction onClick={handleConfirmDelete}>
+                                Excluir
+                            </AlertDialogAction>
+                        </AlertDialogFooter>
+                    </AlertDialogContent>
+                </AlertDialog>
+
+                <AlertDialog
+                    open={bulkDeleteDialogOpen}
+                    onOpenChange={setBulkDeleteDialogOpen}
+                >
+                    <AlertDialogContent>
+                        <AlertDialogHeader>
+                            <AlertDialogTitle>Excluir {selectedItems.length} {selectedItems.length === 1 ? "item" : "itens"}?</AlertDialogTitle>
+                            <AlertDialogDescription>
+                                Esta ação não pode ser desfeita. Pastas serão excluídas com todo o seu conteúdo.
+                            </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                            <AlertDialogAction onClick={handleBulkDelete}>
                                 Excluir
                             </AlertDialogAction>
                         </AlertDialogFooter>
