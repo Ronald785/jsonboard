@@ -31,6 +31,8 @@ interface FileUploadStatus {
 
 const JsonUploader: React.FC<JsonUploaderProps> = ({ onSuccess }) => {
     const [uploads, setUploads] = useState<FileUploadStatus[]>([]);
+    const uploadsRef = useRef<FileUploadStatus[]>([]);
+    uploadsRef.current = uploads;
     const workerRef = useRef<Worker | null>(null);
     const fileInputRef = useRef<HTMLInputElement | null>(null);
 
@@ -45,48 +47,54 @@ const JsonUploader: React.FC<JsonUploaderProps> = ({ onSuccess }) => {
                 const { status, message, payload, uploadId } =
                     e.data as WorkerResponse;
 
-                setUploads((prevUploads) =>
-                    prevUploads.map((upload) => {
-                        if (upload.id === uploadId) {
-                            if (status === "success") {
-                                const contentString = JSON.stringify(
-                                    payload,
-                                    null,
-                                    2
-                                );
-                                const fileName =
-                                    upload.file.name || `data-${uuidv4()}.json`;
-
-                                void saveFile(
-                                    fileName,
-                                    contentString,
-                                    currentFolderId
-                                ).then(async (fileId) => {
-                                    upload.output =
-                                        "Arquivo salvo com sucesso!";
-                                    upload.outputStatus = "success";
-                                    toast.success(
-                                        `Arquivo ${fileName} salvo com sucesso.`
-                                    );
-                                    await loadFolderContents(currentFolderId);
-                                    if (onSuccess) onSuccess(fileId);
-                                    setTimeout(
-                                        () => removeUpload(upload.id),
-                                        5000
-                                    );
-                                });
-                            } else {
-                                upload.output = `Erro: ${message}`;
-                                upload.outputStatus = "error";
-                                toast.error(
-                                    `Erro no arquivo ${upload.file.name}: ${message}`
-                                );
-                                setTimeout(() => removeUpload(upload.id), 5000);
-                            }
-                        }
-                        return upload;
-                    })
+                const upload = uploadsRef.current.find(
+                    (u) => u.id === uploadId
                 );
+                if (!upload) return;
+
+                if (status === "success") {
+                    const contentString = JSON.stringify(payload, null, 2);
+                    const fileName =
+                        upload.file.name || `data-${uuidv4()}.json`;
+
+                    void saveFile(
+                        fileName,
+                        contentString,
+                        currentFolderId
+                    ).then(async (fileId) => {
+                        setUploads((prev) =>
+                            prev.map((u) =>
+                                u.id === uploadId
+                                    ? {
+                                          ...u,
+                                          output: "Arquivo salvo com sucesso!",
+                                          outputStatus: "success"
+                                      }
+                                    : u
+                            )
+                        );
+                        toast.success(`Arquivo ${fileName} salvo com sucesso.`);
+                        await loadFolderContents(currentFolderId);
+                        if (onSuccess) onSuccess(fileId);
+                        setTimeout(() => removeUpload(uploadId), 5000);
+                    });
+                } else {
+                    setUploads((prev) =>
+                        prev.map((u) =>
+                            u.id === uploadId
+                                ? {
+                                      ...u,
+                                      output: `Erro: ${message}`,
+                                      outputStatus: "error"
+                                  }
+                                : u
+                        )
+                    );
+                    toast.error(
+                        `Erro no arquivo ${upload.file.name}: ${message}`
+                    );
+                    setTimeout(() => removeUpload(uploadId), 5000);
+                }
             };
 
             return () => {
