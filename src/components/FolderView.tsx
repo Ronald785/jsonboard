@@ -28,6 +28,15 @@ interface FolderViewProps {
     setDeleteDialogOpen: (open: boolean) => void;
 }
 
+const fmt = (ts: number) =>
+    new Date(ts).toLocaleString("pt-BR", {
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit"
+    });
+
 const FolderView: React.FC<FolderViewProps> = ({
     folders,
     files,
@@ -130,11 +139,15 @@ const FolderView: React.FC<FolderViewProps> = ({
                                     />
                                 )}
                                 <div
-                                    // className={`flex flex-1 cursor-pointer gap-2 ${selectedItems.includes(folder.id) ? "bg-blue-100" : ""}`}
-                                    className={`flex flex-1 cursor-pointer gap-2`}
+                                    className="flex flex-1 cursor-pointer items-center gap-2"
                                     onClick={() => onFolderClick(folder.id)}
                                 >
-                                    <FolderIcon size={24} /> {folder.name}
+                                    <FolderIcon size={24} className="shrink-0" />
+                                    <div className="min-w-0">
+                                        <p className="truncate font-medium">{folder.name}</p>
+                                        <p className="text-muted-foreground text-xs">Criado: {fmt(folder.createdAt)}</p>
+                                        <p className="text-muted-foreground text-xs">Atualizado: {fmt(folder.lastModified)}</p>
+                                    </div>
                                 </div>
                                 <DropdownMenu>
                                     <DropdownMenuTrigger>
@@ -219,11 +232,15 @@ const FolderView: React.FC<FolderViewProps> = ({
                                     />
                                 )}
                                 <div
-                                    // className={`flex flex-1 cursor-pointer gap-2 ${selectedItems.includes(file.id) ? "bg-blue-100" : ""}`}
-                                    className={`flex flex-1 cursor-pointer gap-2`}
+                                    className="flex flex-1 cursor-pointer items-center gap-2"
                                     onClick={() => onFileClick(file)}
                                 >
-                                    <FileJson size={24} /> {file.name}
+                                    <FileJson size={24} className="shrink-0" />
+                                    <div className="min-w-0">
+                                        <p className="truncate font-medium">{file.name}</p>
+                                        <p className="text-muted-foreground text-xs">Criado: {fmt(file.createdAt)}</p>
+                                        <p className="text-muted-foreground text-xs">Atualizado: {fmt(file.lastModified)}</p>
+                                    </div>
                                 </div>
                                 <DropdownMenu>
                                     <DropdownMenuTrigger>
