@@ -19,6 +19,8 @@ const FileViewer: React.FC<FileViewerProps> = ({ file, onClose }) => {
     const [loading, setLoading] = useState(true);
     const broadcastChannel = useRef<BroadcastChannel | null>(null);
     const [conflicts, setConflicts] = useState<Record<string, boolean>>({});
+    const [rawLoading, setRawLoading] = useState(false);
+    const [viewLoading, setViewLoading] = useState(false);
     const tabId = useRef<string>(crypto.randomUUID());
 
     useEffect(() => {
@@ -154,17 +156,63 @@ const FileViewer: React.FC<FileViewerProps> = ({ file, onClose }) => {
         }
     };
 
-    const handleOpenRaw = () => {
-        if (!content) {
-            console.warn("Sem conteúdo para abrir.");
-            return;
-        }
+    const spawnRawWorker = (
+        mimeType: string,
+        onBlob: (blob: Blob) => void,
+        onError: (msg: string) => void
+    ) => {
+        const worker = new Worker(
+            new URL("../workers/jsonStringifyWorker.ts", import.meta.url),
+            { type: "module" }
+        );
+        worker.onmessage = (e: MessageEvent<{ status: string; blob?: Blob; message?: string }>) => {
+            worker.terminate();
+            if (e.data.status === "error") {
+                onError(e.data.message ?? "Erro desconhecido");
+            } else {
+                onBlob(e.data.blob!);
+            }
+        };
+        worker.postMessage({ contentId: file.contentId, mimeType });
+    };
 
-        const blob = new Blob([JSON.stringify(content, null, 2)], {
-            type: "application/json"
-        });
-        const url = URL.createObjectURL(blob);
-        window.open(url, "_blank");
+    const handleOpenRaw = () => {
+        if (!content) return;
+        setRawLoading(true);
+        spawnRawWorker(
+            "application/json",
+            (blob) => {
+                setRawLoading(false);
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement("a");
+                a.href = url;
+                a.download = file.name.endsWith(".json") ? file.name : `${file.name}.json`;
+                a.click();
+                setTimeout(() => URL.revokeObjectURL(url), 60_000);
+            },
+            (msg) => {
+                setRawLoading(false);
+                toast(`Erro ao baixar JSON: ${msg}`, { action: { label: "Ok", onClick: () => {} } });
+            }
+        );
+    };
+
+    const handleViewRaw = () => {
+        if (!content) return;
+        setViewLoading(true);
+        spawnRawWorker(
+            "text/plain;charset=utf-8",
+            (blob) => {
+                setViewLoading(false);
+                const url = URL.createObjectURL(blob);
+                window.open(url, "_blank");
+                setTimeout(() => URL.revokeObjectURL(url), 60_000);
+            },
+            (msg) => {
+                setViewLoading(false);
+                toast(`Erro ao visualizar RAW: ${msg}`, { action: { label: "Ok", onClick: () => {} } });
+            }
+        );
     };
 
     return (
@@ -185,9 +233,17 @@ const FileViewer: React.FC<FileViewerProps> = ({ file, onClose }) => {
                         </Button>
                         <Button
                             className="cursor-pointer"
-                            onClick={handleOpenRaw}
+                            onClick={handleViewRaw}
+                            disabled={viewLoading}
                         >
-                            Abrir RAW
+                            {viewLoading ? "Preparando..." : "Visualizar RAW"}
+                        </Button>
+                        <Button
+                            className="cursor-pointer"
+                            onClick={handleOpenRaw}
+                            disabled={rawLoading}
+                        >
+                            {rawLoading ? "Preparando..." : "Baixar JSON"}
                         </Button>
                         <Button className="cursor-pointer" onClick={onClose}>
                             Fechar arquivo
